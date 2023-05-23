@@ -1,59 +1,96 @@
 package main
 
 import (
-    "fmt"
-    "strings"
-    "strconv"
+	"fmt"
+	"unicode"
 )
 
 type Token struct {
-    Value string
-    Type string
+	Value string
+	Type  TokenType
 }
+type TokenType string
 
-var TokenList []Token
+const (
+	Equals      TokenType = "Equals"
+	Number      TokenType = "Number"
+	Plus        TokenType = "Plus"
+	Minus       TokenType = "Minus"
+	Divide      TokenType = "Divide"
+	Times       TokenType = "Times"
+	OpenParen   TokenType = "OpenParen"
+	ClosedParen TokenType = "ClosedParen"
+)
 
 func main() {
-    str := "50.0 * 25 ="
-    makeToken(str)
-    fmt.Println(TokenList)
+	str := "50.0 * 25 ="
+	tokens := Tokenize(str)
+	for _, token := range tokens {
+		fmt.Println(token)
+	}
 }
 
+func Tokenize(chars string) []Token {
+	var TokenList []Token
+	var number string = ""
 
-func makeToken(chars string) {
-    words := strings.Split(chars, " ")
+	for _, char := range []byte(chars) {
+		if unicode.IsDigit(rune(char)) {
+			number += string(char)
+			continue
+		} else {
+			if number != "" {
+				token := Token{
+					Value: number,
+					Type:  Number,
+				}
+				TokenList = append(TokenList, token)
+			}
+			number = ""
+		}
+		switch char {
+		case '=':
+			token := Token{
+				Value: string(char),
+				Type:  Equals,
+			}
+			TokenList = append(TokenList, token)
 
-    for i := 0; i < len(words); i++ {
-        switch words[i] {
-            case "=":
-                token := Token{
-                    Value: words[i],
-                    Type: "equalSign",
-                }
-                TokenList = append(TokenList, token)
+		case '+':
+			token := Token{
+				Value: string(char),
+				Type:  Plus,
+			}
+			TokenList = append(TokenList, token)
 
-            case "+", "-", "/", "*":
-                token := Token{
-                    Value: words[i],
-                    Type: "operand",
-                }
-                TokenList = append(TokenList, token)
+		case '-':
+			token := Token{
+				Value: string(char),
+				Type:  Minus,
+			}
+			TokenList = append(TokenList, token)
+		case '*':
+			token := Token{
+				Value: string(char),
+				Type:  Times,
+			}
+			TokenList = append(TokenList, token)
+		case '(':
+			token := Token{
+				Value: string(char),
+				Type:  OpenParen,
+			}
+			TokenList = append(TokenList, token)
+		case ')':
+			token := Token{
+				Value: string(char),
+				Type:  ClosedParen,
+			}
+			TokenList = append(TokenList, token)
 
-            case words[i]:
-                if num, err := strconv.Atoi(words[i]); err == nil || (len(words[i]) > 1 && words[i][0] == '-' && strconv.Itoa(num) == words[i][1:]) {    
-                 token := Token{
-                    Value: words[i],
-                    Type: "integer",
-                }
-                TokenList = append(TokenList, token)
-                }
-
-            default:
-                fmt.Println("Invalid input")
-        }
-    }
-}
-
-func readinput() {
-    
+		default:
+			fmt.Println("Invalid input")
+		}
+	}
+	return TokenList
 }
